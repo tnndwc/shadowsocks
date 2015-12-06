@@ -5,7 +5,7 @@
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
-# a copy of the License at
+# a cop y of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -29,8 +29,10 @@ from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
 
 
 def main():
+    # 检查Python Version是否支持
     shell.check_python()
 
+    # 解析命令参数以及.json配置文件(优先解析命令行参数)
     config = shell.get_config(False)
 
     daemon.daemon_exec(config)
@@ -41,6 +43,7 @@ def main():
                          'server_port and password. server_port and password '
                          'will be ignored')
     else:
+        # 存在多端口到情况
         config['port_password'] = {}
         server_port = config.get('server_port', None)
         if server_port:
@@ -50,6 +53,7 @@ def main():
             else:
                 config['port_password'][str(server_port)] = config['password']
 
+    # 根据提供到UDP API动态到增删用户(端口\密码)
     if config.get('manager_address', 0):
         logging.info('entering manager mode')
         manager.run(config)
@@ -58,6 +62,7 @@ def main():
     tcp_servers = []
     udp_servers = []
 
+    # 如果不制定,则默认是['8.8.4.4', '8.8.8.8']
     if 'dns_server' in config:  # allow override settings in resolv.conf
         dns_resolver = asyncdns.DNSResolver(config['dns_server'])
     else:
@@ -77,18 +82,22 @@ def main():
     def run_server():
         def child_handler(signum, _):
             logging.warn('received SIGQUIT, doing graceful shutting down..')
+            # 循环列表(tcp_servers + udp_servers),并应用到lambda
             list(map(lambda s: s.close(next_tick=True),
                      tcp_servers + udp_servers))
+
         signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM),
                       child_handler)
 
         def int_handler(signum, _):
             sys.exit(1)
+
         signal.signal(signal.SIGINT, int_handler)
 
         try:
             loop = eventloop.EventLoop()
             dns_resolver.add_to_loop(loop)
+            # 循环列表(tcp_servers + udp_servers),并应用到lambda
             list(map(lambda s: s.add_to_loop(loop), tcp_servers + udp_servers))
 
             daemon.set_user(config.get('user', None))
@@ -119,6 +128,7 @@ def main():
                         except OSError:  # child may already exited
                             pass
                     sys.exit()
+
                 signal.signal(signal.SIGTERM, handler)
                 signal.signal(signal.SIGQUIT, handler)
                 signal.signal(signal.SIGINT, handler)

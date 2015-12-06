@@ -35,6 +35,7 @@ def daemon_exec(config):
         command = config['daemon']
         if not command:
             command = 'start'
+        #存在默认值:/var/run/shadowsocks.pid,/var/log/shadowsocks.log
         pid_file = config['pid-file']
         log_file = config['log-file']
         if command == 'start':
@@ -81,7 +82,7 @@ def write_pid_file(pid_file, pid):
     os.write(fd, common.to_bytes(str(pid)))
     return 0
 
-
+#复制stream到f
 def freopen(f, mode, stream):
     oldf = open(f, mode)
     oldfd = oldf.fileno()
@@ -93,17 +94,21 @@ def freopen(f, mode, stream):
 def daemon_start(pid_file, log_file):
 
     def handle_exit(signum, _):
+        #SIGTERM 是kill不带参数多信号量
         if signum == signal.SIGTERM:
             sys.exit(0)
         sys.exit(1)
 
     signal.signal(signal.SIGINT, handle_exit)
+
+    #SIGTERM=CTRL+C
     signal.signal(signal.SIGTERM, handle_exit)
 
     # fork only once because we are sure parent will exit
     pid = os.fork()
     assert pid != -1
 
+    #Return 0 in the child and the child’s process id in the parent.
     if pid > 0:
         # parent waits for its child
         time.sleep(5)
@@ -117,6 +122,8 @@ def daemon_start(pid_file, log_file):
         sys.exit(1)
 
     os.setsid()
+
+    #忽略SIGHUP
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
     print('started')
@@ -124,6 +131,7 @@ def daemon_start(pid_file, log_file):
 
     sys.stdin.close()
     try:
+        #复制stdout\stderr到文件
         freopen(log_file, 'a', sys.stdout)
         freopen(log_file, 'a', sys.stderr)
     except IOError as e:

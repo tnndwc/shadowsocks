@@ -578,6 +578,7 @@ class TCPRelay(object):
                             (listen_addr, listen_port))
         af, socktype, proto, canonname, sa = addrs[0]
         server_socket = socket.socket(af, socktype, proto)
+        #SO_REUSEADDR是让端口释放后立即就可以被再次使用
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind(sa)
         server_socket.setblocking(False)
