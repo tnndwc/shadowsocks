@@ -31,9 +31,16 @@ def main():
     shell.check_python()
 
     # fix py2exe
+    #py2exe是一个将python脚本转换成windows上的可独立执行的可执行程序(*.exe)的工具
+    # 这样，你就可以不用装python而在windows系统上运行这个可执行程序。
     if hasattr(sys, "frozen") and sys.frozen in \
             ("windows_exe", "console_exe"):
+
+        #一个字符串，给出Python解释器的可执行二进制文件的绝对路径。
+        # 如果Python无法检索到其可执行程序的真实路径，sys.executable将为一个空字符串或None。
         p = os.path.dirname(os.path.abspath(sys.executable))
+
+        #将当前的工作目录改为 path,可用的平台：Unix、Windows。
         os.chdir(p)
 
     config = shell.get_config(True)
