@@ -53,6 +53,7 @@ def f6():
 
     print rs.items()
 
+
 if __name__ == "__main__":
     # f1()
     #f2()

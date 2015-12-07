@@ -286,7 +286,7 @@ class DNSResolver(object):
         if not self._servers:
             self._servers = ['114.114.114.114', '8.8.4.4', '8.8.8.8']
 
-    def  _parse_hosts(self):
+    def _parse_hosts(self):
         etc_path = '/etc/hosts'
         if 'WINDIR' in os.environ:
             etc_path = os.environ['WINDIR'] + '/system32/drivers/etc/hosts'
