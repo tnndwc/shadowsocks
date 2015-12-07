@@ -52,6 +52,7 @@ def main():
         logging.info("starting local at %s:%d" %
                      (config['local_address'], config['local_port']))
 
+        # 默认DNS['8.8.4.4', '8.8.8.8']
         dns_resolver = asyncdns.DNSResolver()
         tcp_server = tcprelay.TCPRelay(config, dns_resolver, True)
         udp_server = udprelay.UDPRelay(config, dns_resolver, True)
