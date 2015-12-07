@@ -43,6 +43,7 @@ def main():
         #将当前的工作目录改为 path,可用的平台：Unix、Windows。
         os.chdir(p)
 
+    # 解析配置信息
     config = shell.get_config(True)
 
     daemon.daemon_exec(config)
