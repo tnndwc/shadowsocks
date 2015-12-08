@@ -1,7 +1,15 @@
-import socket, sys, select, SocketServer, struct, time
-
+# coding=utf-8
+import socket
+import select
+import SocketServer
+import struct
+import signal
+import sys
 
 class ThreadingTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    """
+    SocketServer.ThreadingMixIn:利用多线程实现异步。
+    """
     pass
 
 
@@ -12,6 +20,10 @@ class Socks5Server(SocketServer.StreamRequestHandler):
             r, w, e = select.select(fdset, [], [])
             if sock in r:
                 data_ = sock.recv(4096)
+                file_object = open('D:\a.txt')
+                file_object.write(data_)
+                file_object.close()
+                sys.exit(0)
                 if remote.send(data_) <= 0:
                     break
             if remote in r:
@@ -28,6 +40,8 @@ class Socks5Server(SocketServer.StreamRequestHandler):
             sock.send(b"\x05\x00")
             # 2. Request
             data = self.rfile.read(4)
+
+            #ord 将字符转换成ascii码
             mode = ord(data[1])
             addrtype = ord(data[3])
             if addrtype == 1:  # IPv4
@@ -44,6 +58,9 @@ class Socks5Server(SocketServer.StreamRequestHandler):
                 else:
                     reply = b"\x05\x07\x00\x01"  # Command not supported
                 local = remote.getsockname()
+
+                #inet_aton: Convert an IPv4 address from dotted-quad string format (for example, ‘123.45.67.89’)
+                # to 32-bit packed binary format, as a string four characters in length.
                 reply += socket.inet_aton(local[0]) + struct.pack(">H", local[1])
             except socket.error:
                 # Connection refused
@@ -59,7 +76,18 @@ class Socks5Server(SocketServer.StreamRequestHandler):
 
 def main():
     server = ThreadingTCPServer(('127.0.0.1', 9086), Socks5Server)
+
+    def handler(signum, _):
+        server.server_close()
+
+    signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), handler)
+
+    def int_handler(signum, _):
+            sys.exit(1)
+    signal.signal(signal.SIGINT, int_handler)
+
     server.serve_forever()
+    server.server_close()
 
 
 if __name__ == '__main__':
