@@ -20,10 +20,6 @@ class Socks5Server(SocketServer.StreamRequestHandler):
             r, w, e = select.select(fdset, [], [])
             if sock in r:
                 data_ = sock.recv(4096)
-                file_object = open('D:\a.txt')
-                file_object.write(data_)
-                file_object.close()
-                sys.exit(0)
                 if remote.send(data_) <= 0:
                     break
             if remote in r:
